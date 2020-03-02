@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">PlugPag Android POC</string>
+
+    <string name="txt_section_permissions">Permissões</string>
+
+    <string name="btn_permissions">Solicitar/Verificar permissões</string>
+
+
 </resources>
