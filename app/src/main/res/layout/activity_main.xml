@@ -13,12 +13,13 @@
 
         <TextView
             android:id="@+id/textView"
+            style="@style/SectionLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/txt_section_permissions" />
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/btn_permissions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_permissions" />
