@@ -15,7 +15,11 @@ import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.androidstudies.plugpagandroidpoc.helper.Generator;
+import br.com.androidstudies.plugpagandroidpoc.model.PaymentDataModel;
+import br.com.uol.pagseguro.plugpag.PlugPag;
 import br.com.uol.pagseguro.plugpag.PlugPagAuthenticationListener;
+import br.com.uol.pagseguro.plugpag.PlugPagPaymentData;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, PlugPagAuthenticationListener {
 
@@ -28,8 +32,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        PlugPagManager.create(this.getApplicationContext());
-        this.setupEventListeners();
+//        this.requestPermissions();
+
+//        this.setupEventListeners();
     }
 
     /**
@@ -54,11 +59,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btn_permissions:
-                this.requestPermissions();
+        PlugPagManager.create(this.getApplicationContext());
+        this.requestPermissions();
+
+    }
+
+    /**
+     * Start a specific payment task.
+     */
+    public void getTask(PaymentDataModel paymentDataModel) {
+        switch (OperationTypeEnum.toEnum(paymentDataModel.getmType())) {
+            case OperationTypeEnum.TYPE_DEBITO:
+                this.startTerminalDebitPayment();
+                break;
+
+            default:
                 break;
         }
+
+    }
+
+    /**
+     * Starts a new debit payment on a terminal.
+     */
+    private void startTerminalDebitPayment(PaymentDataModel paymentDataModel) {
+        PlugPagPaymentData paymentData = null;
+
+        paymentData = new PlugPagPaymentData.Builder()
+                .setType(PlugPag.TYPE_DEBITO)
+                .setAmount(paymentDataModel.getmAmount())
+                .setUserReference(paymentDataModel.getmUserReference())
+                .build();
+        new TerminalPaymentTask(this).execute(paymentData);
     }
 
     /**
@@ -71,11 +103,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (missingPermissions != null && missingPermissions.length > 0) {
             ActivityCompat.requestPermissions(this, missingPermissions, MainActivity.PERMISSIONS_REQUEST_CODE);
-        } else {
-            showMessage.showMessage(R.string.msg_all_permissions_granted);
         }
     }
-
 
 
     /**

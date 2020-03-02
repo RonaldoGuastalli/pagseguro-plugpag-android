@@ -5,6 +5,7 @@
     <string name="plugpag_app_version">0.0</string>
 
     <string name="txt_section_permissions">Permissões</string>
+    <string name="txt_section_terminals">Terminais</string>
 
     <string name="btn_permissions">Solicitar/Verificar permissões</string>
 
@@ -13,6 +14,13 @@
     <string name="msg_error_unexpected">Erro inesperado</string>
 
     <string name="msg_all_permissions_granted">Todas permissões concedidas</string>
+
+    <string name="btn_terminal_credit">Crédito à vista</string>
+    <string name="btn_terminal_credit_with_installments">Crédito parcelado</string>
+    <string name="btn_terminal_debit">Débito</string>
+    <string name="btn_terminal_voucher">Voucher</string>
+    <string name="btn_terminal_void_payment">Estorno</string>
+    <string name="btn_terminal_query">Consulta</string>
 
 
 </resources>

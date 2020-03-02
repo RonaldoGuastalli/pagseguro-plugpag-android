@@ -21,8 +21,8 @@ public class ShowMessage extends AppCompatActivity {
     public void showMessage(@StringRes int message) {
         String msg = null;
 
-        msg = this.getString(message);
-        this.showMessage(msg);
+        msg = getString(message);
+        showMessage(msg);
     }
 
     /**
