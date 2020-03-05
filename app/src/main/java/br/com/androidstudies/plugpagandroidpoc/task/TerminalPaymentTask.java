@@ -4,6 +4,10 @@ import android.os.AsyncTask;
 
 import androidx.annotation.NonNull;
 
+import com.google.gson.Gson;
+
+import org.java_websocket.WebSocket;
+
 import br.com.androidstudies.plugpagandroidpoc.PlugPagManager;
 import br.com.androidstudies.plugpagandroidpoc.TaskHandler;
 import br.com.androidstudies.plugpagandroidpoc.helper.Bluetooth;
@@ -14,25 +18,24 @@ import br.com.uol.pagseguro.plugpag.PlugPagTransactionResult;
 
 public class TerminalPaymentTask extends AsyncTask<PlugPagPaymentData, String, PlugPagTransactionResult> {
 
-    private TaskHandler mHandler = null;
     private PlugPagPaymentData mPaymentData = null;
+    private WebSocket conn;
 
     /**
      * Creates a new terminal payment task.
      *
      * @param handler Handler used to report updates.
      */
-    public TerminalPaymentTask(@NonNull TaskHandler handler) {
+    public TerminalPaymentTask(@NonNull TaskHandler handler, WebSocket conn) {
         if (handler == null) {
             throw new RuntimeException("TaskHandler reference cannot be null");
         }
-
-        this.mHandler = handler;
+        this.conn = conn;
     }
 
     @Override
     protected void onPreExecute() {
-        this.mHandler.onTaskStart();
+//        this.mHandler.onTaskStart();
     }
 
     @Override
@@ -62,14 +65,11 @@ public class TerminalPaymentTask extends AsyncTask<PlugPagPaymentData, String, P
 
     @Override
     protected void onProgressUpdate(String... values) {
-        if (values != null && values.length > 0) {
-            this.mHandler.onProgressPublished(values[0], this.mPaymentData);
-        }
+        conn.send(new Gson().toJson(values));
     }
 
     @Override
     protected void onPostExecute(PlugPagTransactionResult plugPagTransactionResult) {
-        this.mHandler.onTaskFinished(plugPagTransactionResult);
-        this.mHandler = null;
+        conn.send(new Gson().toJson(plugPagTransactionResult));
     }
 }

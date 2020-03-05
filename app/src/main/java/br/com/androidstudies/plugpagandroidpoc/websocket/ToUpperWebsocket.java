@@ -1,26 +1,27 @@
 package br.com.androidstudies.plugpagandroidpoc.websocket;
 
-import android.app.AlertDialog;
-
-import com.google.gson.Gson;
-
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 import java.net.InetSocketAddress;
-
 import java.nio.ByteBuffer;
 
-import br.com.androidstudies.plugpagandroidpoc.model.PaymentDataModel;
+import br.com.androidstudies.plugpagandroidpoc.TaskHandler;
+import br.com.androidstudies.plugpagandroidpoc.task.TerminalPaymentTask;
+import br.com.androidstudies.plugpagandroidpoc.websocket.mapper.PlugPagPaymentDataMapper;
+import br.com.androidstudies.plugpagandroidpoc.websocket.mapper.WebsocketInMapper;
 import br.com.androidstudies.plugpagandroidpoc.websocket.model.WebsocketIn;
-import br.com.androidstudies.plugpagandroidpoc.websocket.model.WebsocketOut;
+import br.com.uol.pagseguro.plugpag.PlugPagPaymentData;
 
 public class ToUpperWebsocket extends WebSocketServer {
 
+    private TaskHandler taskHandler;
 
-    public ToUpperWebsocket(int port) {
+
+    public ToUpperWebsocket(int port, TaskHandler taskHandler) {
         super(new InetSocketAddress(port));
+        this.taskHandler = taskHandler;
     }
 
     @Override
@@ -38,13 +39,17 @@ public class ToUpperWebsocket extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        broadcast(message);
         System.out.println(conn + ": " + message);
-
-    }
-
-    public WebsocketIn messageResult(String message) {
-        return new Gson().fromJson(message, WebsocketIn.class);
+        WebsocketIn websocketIn = WebsocketInMapper
+                .mapperToWebsocketIn(message);
+        PlugPagPaymentData plugPagPaymentData = PlugPagPaymentDataMapper
+                .mapperToPlugPagPaymentData(websocketIn);
+        try {
+            new TerminalPaymentTask(taskHandler, conn)
+                    .execute(plugPagPaymentData);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
@@ -63,7 +68,5 @@ public class ToUpperWebsocket extends WebSocketServer {
     @Override
     public void onStart() {
         System.out.println("Server started!");
-        setConnectionLostTimeout(0);
-        setConnectionLostTimeout(100);
     }
 }
