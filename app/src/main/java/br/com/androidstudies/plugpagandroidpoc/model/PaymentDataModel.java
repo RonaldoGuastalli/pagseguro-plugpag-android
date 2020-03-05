@@ -10,6 +10,16 @@ public class PaymentDataModel {
     public PaymentDataModel() {
     }
 
+    public PaymentDataModel(int mType,
+                            int mAmount,
+                            int mInstallmentType,
+                            String mUserReference) {
+        this.mType = mType;
+        this.mAmount = mAmount;
+        this.mInstallmentType = mInstallmentType;
+        this.mUserReference = mUserReference;
+    }
+
     public int getmType() {
         return mType;
     }

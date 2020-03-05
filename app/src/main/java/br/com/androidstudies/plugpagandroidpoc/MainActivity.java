@@ -3,10 +3,9 @@ package br.com.androidstudies.plugpagandroidpoc;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -15,53 +14,39 @@ import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.androidstudies.plugpagandroidpoc.helper.Generator;
+import br.com.androidstudies.plugpagandroidpoc.mock.PaymentDataModelMock;
 import br.com.androidstudies.plugpagandroidpoc.model.PaymentDataModel;
+import br.com.androidstudies.plugpagandroidpoc.task.TerminalPaymentTask;
+import br.com.androidstudies.plugpagandroidpoc.websocket.ToUpperWebsocket;
 import br.com.uol.pagseguro.plugpag.PlugPag;
 import br.com.uol.pagseguro.plugpag.PlugPagAuthenticationListener;
 import br.com.uol.pagseguro.plugpag.PlugPagPaymentData;
+import br.com.uol.pagseguro.plugpag.PlugPagTransactionResult;
+import br.com.uol.pagseguro.plugpag.PlugPagVoidData;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, PlugPagAuthenticationListener {
+public class MainActivity
+        extends AppCompatActivity
+        implements View.OnClickListener, TaskHandler, PlugPagAuthenticationListener {
 
     private static final int PERMISSIONS_REQUEST_CODE = 0x1234;
 
-    private ShowMessage showMessage = new ShowMessage();
+    private ShowMessage showMessage = new ShowMessage(this);
 
+
+    // Lifecycle
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-//        this.requestPermissions();
-
-//        this.setupEventListeners();
+        new ToUpperWebsocket( 6060 ).start();
     }
 
-    /**
-     * Setups event listeners for all Buttons.
-     */
-    private void setupEventListeners() {
-        ViewGroup root = null;
-        View currentView = null;
-
-        root = this.getWindow().getDecorView().findViewById(android.R.id.content); // Default Android content container
-        root = (ViewGroup) root.getChildAt(0); // ScrollView
-        root = (ViewGroup) root.getChildAt(0); // LinearLayout
-
-        for (int i = 0; i < root.getChildCount(); i++) {
-            currentView = root.getChildAt(i);
-
-            if (currentView instanceof Button) {
-                currentView.setOnClickListener(this);
-            }
-        }
-    }
-
+    // Click events
     @Override
     public void onClick(View v) {
         PlugPagManager.create(this.getApplicationContext());
         this.requestPermissions();
-
+        this.getTask(PaymentDataModelMock.paymentDataModelMock());
     }
 
     /**
@@ -69,10 +54,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     public void getTask(PaymentDataModel paymentDataModel) {
         switch (OperationTypeEnum.toEnum(paymentDataModel.getmType())) {
-            case OperationTypeEnum.TYPE_DEBITO:
-                this.startTerminalDebitPayment();
+            case TYPE_CREDITO:
                 break;
-
+            case TYPE_DEBITO:
+                this.startTerminalDebitPayment(paymentDataModel);
+                break;
+            case TYPE_VOUCHER:
+                break;
+            case INSTALLMENT_TYPE_A_VISTA:
+                break;
             default:
                 break;
         }
@@ -93,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         new TerminalPaymentTask(this).execute(paymentData);
     }
 
+    // Request missing permissions
     /**
      * Requests permissions on runtime, if any needed permission is not granted.
      */
@@ -156,12 +147,69 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return permissions;
     }
 
+    // Result display
     @Override
     public void onSuccess() {
+        showMessage.showMessage(R.string.msg_authentication_ok);
     }
 
     @Override
     public void onError() {
+        showMessage.showMessage(R.string.msg_authentication_failed);
+    }
+
+    // Task handling
+    @Override
+    public void onTaskStart() {
+        showMessage.showProgressDialog(R.string.msg_wait);
+    }
+
+    @Override
+    public void onProgressPublished(String progress, Object transactionInfo) {
+        String message = null;
+        String type = null;
+
+        if (TextUtils.isEmpty(progress)) {
+            message = this.getString(R.string.msg_wait);
+        } else {
+            message = progress;
+        }
+
+        if (transactionInfo instanceof PlugPagPaymentData) {
+            switch (((PlugPagPaymentData) transactionInfo).getType()) {
+                case PlugPag.TYPE_CREDITO:
+                    type = this.getString(R.string.type_credit);
+                    break;
+
+                case PlugPag.TYPE_DEBITO:
+                    type = this.getString(R.string.type_debit);
+                    break;
+
+                case PlugPag.TYPE_VOUCHER:
+                    type = this.getString(R.string.type_voucher);
+                    break;
+            }
+
+            message = this.getString(
+                    R.string.msg_payment_info,
+                    type,
+                    (double) ((PlugPagPaymentData) transactionInfo).getAmount() / 100d,
+                    ((PlugPagPaymentData) transactionInfo).getInstallments(),
+                    message);
+        } else if (transactionInfo instanceof PlugPagVoidData) {
+            message = this.getString(R.string.msg_void_payment_info, message);
+        }
+
+        showMessage.showProgressDialog(message);
+
+    }
+
+    @Override
+    public void onTaskFinished(Object result) {
+        if (result instanceof PlugPagTransactionResult) {
+            showMessage.showResult((PlugPagTransactionResult) result);
+        } else if (result instanceof String) {
+            showMessage.showMessage((String) result);        }
 
     }
 }
