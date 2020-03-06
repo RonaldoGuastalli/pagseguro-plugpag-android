@@ -10,6 +10,7 @@ public class PlugPagPaymentDataMapper {
                 .setType(websocketIn.getmType())
                 .setAmount(websocketIn.getmAmount())
                 .setUserReference(websocketIn.getmUserReference())
+                .setInstallments(websocketIn.getmInstallment())
                 .build();
     }
 }

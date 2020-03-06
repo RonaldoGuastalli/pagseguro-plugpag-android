@@ -6,6 +6,7 @@ public class WebsocketIn {
     private int mAmount;
     private int mInstallmentType;
     private String mUserReference;
+    private int mInstallment;
 
     public WebsocketIn() {
     }
@@ -40,5 +41,13 @@ public class WebsocketIn {
 
     public void setmUserReference(String mUserReference) {
         this.mUserReference = mUserReference;
+    }
+
+    public int getmInstallment() {
+        return mInstallment;
+    }
+
+    public void setmInstallment(int mInstallment) {
+        this.mInstallment = mInstallment;
     }
 }

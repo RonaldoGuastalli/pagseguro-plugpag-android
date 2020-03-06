@@ -13,12 +13,8 @@ import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.com.androidstudies.plugpagandroidpoc.model.PaymentDataModel;
-import br.com.androidstudies.plugpagandroidpoc.task.TerminalPaymentTask;
 import br.com.androidstudies.plugpagandroidpoc.websocket.ToUpperWebsocket;
-import br.com.uol.pagseguro.plugpag.PlugPag;
 import br.com.uol.pagseguro.plugpag.PlugPagAuthenticationListener;
-import br.com.uol.pagseguro.plugpag.PlugPagPaymentData;
 
 public class MainActivity
         extends AppCompatActivity
@@ -40,39 +36,6 @@ public class MainActivity
         PlugPagManager.create(this.getApplicationContext());
         this.requestPermissions();
         new ToUpperWebsocket( 6060 , this).start();
-    }
-
-    /**
-     * Start a specific payment task.
-     */
-    public void getTask(PaymentDataModel paymentDataModel) {
-        switch (OperationTypeEnum.toEnum(paymentDataModel.getmType())) {
-            case TYPE_CREDITO:
-                break;
-            case TYPE_DEBITO:
-                this.startTerminalDebitPayment(paymentDataModel);
-                break;
-            case TYPE_VOUCHER:
-                break;
-            case INSTALLMENT_TYPE_A_VISTA:
-                break;
-            default:
-                break;
-        }
-
-    }
-
-    /**
-     * Starts a new debit payment on a terminal.
-     */
-    private void startTerminalDebitPayment(PaymentDataModel paymentDataModel) {
-        PlugPagPaymentData paymentData = null;
-        paymentData = new PlugPagPaymentData.Builder()
-                .setType(PlugPag.TYPE_DEBITO)
-                .setAmount(paymentDataModel.getmAmount())
-                .setUserReference(paymentDataModel.getmUserReference())
-                .build();
-        new TerminalPaymentTask(this, null).execute(paymentData);
     }
 
     /**
